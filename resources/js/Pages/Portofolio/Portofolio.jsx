@@ -1,114 +1,144 @@
-import React, { useState, useEffect } from "react";
+import React, {
+    useState,
+    useEffect,
+    useCallback,
+    Suspense,
+    useMemo,
+} from "react";
 import axios from "axios";
-
 import ImgGroupper from "@/Utils/ImageGroupper/ImgGroupper";
+import HomeSkeleton from "@/Components/HomeSkeleton";
 import Page from "../Page";
 
-import Gallery from "@/Pages/Gallery/Gallery";
-import GalleryDetail from "@/Pages/Gallery/Detail/GalleryDetail";
-import HomeSkeleton from "@/Components/HomeSkeleton";
+const Gallery = React.lazy(() => import("@/Pages/Gallery/Gallery"));
+const GalleryDetail = React.lazy(() =>
+    import("@/Pages/Gallery/Detail/GalleryDetail")
+);
 
-const ITEMS_PER_PAGE = 999999;
+const ITEMS_PER_PAGE = 9999999;
 
-const Portofolio = () => {
+const Home = () => {
     const [isData, setIsData] = useState([]);
     const [isPageId, setIsPageId] = useState(0);
     const [filter, setFilter] = useState("#all");
     const [isLoading, setIsLoading] = useState(true);
     const [filteredData, setFilteredData] = useState([]);
-    const [navDate, setNavDate] = useState([])
-    const [galleryDetailView, setGalleryDetailView] = useState(false)
-    const [imageShow, setImageShow] = useState(false)
-    const [hideLoad, setHideLoad] = useState(false)
+    const [navDate, setNavDate] = useState([]);
+    const [galleryDetailView, setGalleryDetailView] = useState(false);
 
+    /** --------------------------
+     *  FETCH DATA (ONCE)
+     *  -------------------------- */
     useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const res = await axios.get(
+                    "https://olldesign.jp/api/galleryList",
+                    {
+                        timeout: 10000,
+                    }
+                );
+                setIsData(res.data.galleryList || []);
+            } catch (e) {
+                console.error("Error fetching gallery:", e);
+            } finally {
+                setIsLoading(false);
+            }
+        };
         fetchData();
     }, []);
 
+    /** --------------------------
+     *  BUILD FILTER NAV (YEAR)
+     *  -------------------------- */
     useEffect(() => {
-        const fill = ['all']
-        isData.forEach(item => {
+        if (!isData.length) return;
 
-            const dateObject = new Date(item.Date);
-            const year = Number(dateObject.getFullYear()) < 2021 ? 2021 : dateObject.getFullYear()
+        const fill = ["all"];
+        for (const item of isData) {
+            const date = new Date(item.Date);
+            const year = Math.max(date.getFullYear(), 2021);
+            fill.push(year);
+        }
+        fill.push("Graphic Design");
+        const uniqueSorted = [...new Set(fill)].sort((a, b) => b - a);
+        setNavDate(uniqueSorted);
+    }, [isData]);
 
-            fill.push(year)
-        })
-        fill.push('Graphic Design')
-        fill.sort((a, b) => b - a)
-        setNavDate([...new Set (fill)])
-    }, [isData])
-
+    /** --------------------------
+     *  FILTERED DATA
+     *  -------------------------- */
     useEffect(() => {
-        const newFilteredData = isData.filter((item) => {
+        if (!isData.length) return;
 
-            const dateObject = new Date(item.Date)
-            const year = filter === '#Graphic%20Design'
-                ? (item.TagsID === "2"
-                    ? `Graphic%20Design`
-                    : dateObject.getFullYear())
-                : (Number(dateObject.getFullYear()) < 2021 
-                    ? 2021 
-                    : dateObject.getFullYear())
-            
+        const newFiltered = isData.filter((item) => {
+            const date = new Date(item.Date);
+            const year =
+                filter === "#Graphic%20Design"
+                    ? item.TagsID === "2"
+                        ? `Graphic%20Design`
+                        : date.getFullYear()
+                    : Math.max(date.getFullYear(), 2021);
+
             return filter === "#all" || `#${year}` === filter;
         });
-        setFilteredData(newFilteredData);
+
+        setFilteredData(newFiltered);
     }, [isData, filter]);
 
-    const fetchData = async () => {
-        try {
-            const res = await axios.get(
-                "https://olldesign.jp/api/galleryList"
-            );
-            setIsData(res.data.galleryList);
-            setIsLoading(false);
-        } catch (e) {
-            console.error("Error fetching imagings:", e);
-        }
-    };
+    /** --------------------------
+     *  HANDLERS
+     *  -------------------------- */
+    const getDetailId = useCallback((selected) => setIsPageId(selected), []);
+    const getFilter = useCallback((selected) => setFilter(selected), []);
 
-    const getDetailId = (selected) => {
-        setIsPageId(selected);
-    };
+    const onDetailPageId = useMemo(
+        () => isData.filter((pages) => pages.id === parseInt(isPageId)),
+        [isData, isPageId]
+    );
 
-    const getFilter = (selected) => {
-        setFilter(selected);
-    };
+    const displayList = useMemo(
+        () => filteredData.slice(0, ITEMS_PER_PAGE),
+        [filteredData]
+    );
 
-    const onDetailPageId = isData.filter((pages) => {
-        return pages.id === parseInt(isPageId);
-    });
-
-    const dislayList = filteredData.slice(
-        0 * ITEMS_PER_PAGE,
-        (0 + 1) * ITEMS_PER_PAGE
-    )
-
+    /** --------------------------
+     *  RENDER
+     *  -------------------------- */
     return (
-        <Page imageShow={imageShow} hideLoad={hideLoad} galleryDetailView={galleryDetailView}>
-            <div className={`${!galleryDetailView ? 'md:mt-16' : ''}`}>
+        <Page galleryDetailView={galleryDetailView}>
+            <div style={{ paddingTop: 50 }}>
                 {isPageId === 0 ? (
                     <>
-                        <ImgGroupper onGetFilter={getFilter} navDate={navDate} />
+                        <ImgGroupper
+                            onGetFilter={getFilter}
+                            navDate={navDate}
+                        />
+
                         {isLoading ? (
-                            <HomeSkeleton count={isData.length} />
+                            <HomeSkeleton count={10} />
                         ) : (
-                            <Gallery
-                                setImageShow={setImageShow}
-                                setHideLoad={setHideLoad}
-                                imgData={dislayList}
-                                onGetDetailId={getDetailId}
-                                setGalleryDetailView={setGalleryDetailView}
-                            />
+                            <Suspense fallback={<HomeSkeleton count={10} />}>
+                                <Gallery
+                                    imgData={displayList}
+                                    onGetDetailId={getDetailId}
+                                    setGalleryDetailView={setGalleryDetailView}
+                                />
+                            </Suspense>
                         )}
                     </>
                 ) : (
-                    <GalleryDetail detailPages={onDetailPageId} getDetailId={getDetailId} setGalleryDetailView={setGalleryDetailView} />
+                    <Suspense fallback={<HomeSkeleton count={1} />}>
+                        <GalleryDetail
+                            detailPages={onDetailPageId}
+                            getDetailId={getDetailId}
+                            setGalleryDetailView={setGalleryDetailView}
+                        />
+                    </Suspense>
                 )}
             </div>
         </Page>
     );
 };
 
-export default Portofolio;
+export default React.memo(Home);
