@@ -9,7 +9,7 @@ import WebLoader from "@/Components/WebLoader";
 
 import classes from "./Page.module.css";
 import Loading from "./Loading/Loading";
-import gifPathTmp from "/public/assets/video/video.gif";
+// import gifPathTmp from "/public/assets/video/video.gif";
 
 const Page = ({ children, galleryDetailView }) => {
     const [width, setWidth] = useState(0);
@@ -59,13 +59,13 @@ const Page = ({ children, galleryDetailView }) => {
         setIsIphone(checkIfIphone());
     }, []);
 
-    useEffect(() => {
-        var img = new Image();
-        img.onload = () => {
-            setGifPath(gifPathTmp);
-        };
-        img.src = gifPathTmp;
-    }, []);
+    // useEffect(() => {
+    //     var img = new Image();
+    //     img.onload = () => {
+    //         setGifPath(gifPathTmp);
+    //     };
+    //     img.src = gifPathTmp;
+    // }, []);
 
     let content = (
         <div className="flex">
@@ -331,22 +331,20 @@ const Page = ({ children, galleryDetailView }) => {
                                                         support the video tag.
                                                     </video>
                                                 ) : (
-                                                    gifPath && (
-                                                        <div
-                                                            className={`w-screen h-screen transition-all duration-1000`}
-                                                            style={{
-                                                                width: "100%",
-                                                                height: "100vh",
-                                                                backgroundImage: `url(${gifPath})`,
-                                                                backgroundPosition:
-                                                                    "-200px center",
-                                                                backgroundRepeat:
-                                                                    "no-repeat",
-                                                                backgroundSize:
-                                                                    "cover",
-                                                            }}
-                                                        />
-                                                    )
+                                                    <div
+                                                        className={`w-screen h-screen transition-all duration-1000`}
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "100vh",
+                                                            backgroundImage: `url('/assets/video/video.gif')`,
+                                                            backgroundPosition:
+                                                                "-200px center",
+                                                            backgroundRepeat:
+                                                                "no-repeat",
+                                                            backgroundSize:
+                                                                "cover",
+                                                        }}
+                                                    />
                                                 )}
                                                 <div className="absolute w-full bottom-16">
                                                     <a href="#section-scroll">
