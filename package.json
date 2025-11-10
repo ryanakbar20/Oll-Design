@@ -30,6 +30,8 @@
         "vite": "^4.0.0"
     },
     "dependencies": {
+        "embla-carousel-autoplay": "^8.6.0",
+        "embla-carousel-react": "^8.6.0",
         "react-google-recaptcha-v3": "^1.10.1",
         "react-lazy-load-image-component": "^1.6.3",
         "react-scroll": "^1.9.0"
