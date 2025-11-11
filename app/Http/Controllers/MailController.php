@@ -56,7 +56,7 @@ class MailController extends Controller
         Mail::to($recipientEmail, $recipientName)
             ->send(new ReplyToSender($email, $name, $question));
 
-        $recipientEmail = "info@olldesign.jp";
+        $recipientEmail = "pr_book@olldesign.jp";
         $recipientName = "Oll-Design";
 
         Mail::to($recipientEmail, $recipientName)
