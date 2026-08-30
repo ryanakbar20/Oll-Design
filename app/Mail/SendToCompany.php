@@ -17,7 +17,6 @@ class SendToCompany extends Mailable
     public $option;
     public $question;
 
-
     public function __construct($company, $name, $phone, $email, $option, $question)
     {
         $this->company = $company;
@@ -30,8 +29,9 @@ class SendToCompany extends Mailable
 
     public function build()
     {
-        return $this->from($this->email, $this->name) // Optional: set the sender's email and name
-                    ->subject('Question from: ' . $this->name . ' (' . $this->company . ')') // Optional: set the email subject
-                    ->view('emails.bodyEmailCompany'); // Ensure this view exists
+        return $this->from('noreply@olldesign.jp', 'Oll-Design Web Form')
+                    ->replyTo($this->email, $this->name)
+                    ->subject('Question from: ' . $this->name . ' (' . $this->company . ')')
+                    ->view('emails.bodyEmailCompany');
     }
 }

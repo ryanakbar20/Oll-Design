@@ -5,7 +5,7 @@ import Card from "@/Components/Card";
 import Loading from "../Loading/Loading";
 import Swal from "sweetalert2";
 
-import dataContact from './contact.json'
+import dataContact from './contact.json';
 
 import Page from "../Page";
 import "./Contact.css";
@@ -16,36 +16,36 @@ const ContactUsChild = () => {
     const { executeRecaptcha } = useGoogleReCaptcha();
 
     const { i18n } = useTranslation();
-    const [isLanguage, setIsLanguage] = useState(false)
+    const [isLanguage, setIsLanguage] = useState(false);
 
     useEffect(() => {
         if (i18n['language'].toLowerCase() === "en-us") {
-            setIsLanguage("en")
+            setIsLanguage("en");
         } else if (i18n['language'].toLowerCase() === "ja") {
-            setIsLanguage("jp")
+            setIsLanguage("jp");
         } else {
-            setIsLanguage(i18n['language'])
+            setIsLanguage(i18n['language']);
         }
-    }, [i18n['language']])
+    }, [i18n['language']]);
 
-    const [isLoading, setIsLoading] = useState(false)
-    const [dataInput, setDataInput] = useState({})
-    const refCheckbox = useRef([])
+    const [isLoading, setIsLoading] = useState(false);
+    const [dataInput, setDataInput] = useState({});
+    const refCheckbox = useRef([]);
 
     useEffect(() => {
-        let createSturucture = { option: '' }
+        let createSturucture = { option: '' };
         dataContact[0].forEach(item => {
-            createSturucture[item.key] = ''
-        })
-        setDataInput(createSturucture)
+            createSturucture[item.key] = '';
+        });
+        setDataInput(createSturucture);
         
-    }, [])
+    }, []);
 
     const wrapRef = (element, key) => {
         if (refCheckbox.current) {
-            refCheckbox.current[key] = element
+            refCheckbox.current[key] = element;
         }
-    }
+    };
 
     const onChangeHandler = (e, type) => {
         const updatedData = dataContact[0].reduce((acc, item) => {
@@ -54,34 +54,34 @@ const ContactUsChild = () => {
             }
             return acc;
         }, {});
-        setDataInput(prev => ({...prev, ...updatedData}))
-    }
+        setDataInput(prev => ({...prev, ...updatedData}));
+    };
 
     const optionHandler = (e, index) => {
-        let inc = 0
+        let inc = 0;
         refCheckbox.current.forEach(item => {
             if (index !== inc) {
-                item.checked = false
+                item.checked = false;
             }
-            inc++
-        })
+            inc++;
+        });
         if (dataInput['option'] === e.target.value)
-            refCheckbox.current[index].checked = true
+            refCheckbox.current[index].checked = true;
         else
-            setDataInput(prev => ({...prev, option: e.target.value}))
-    }
+            setDataInput(prev => ({...prev, option: e.target.value}));
+    };
 
     useEffect(() => {
         refCheckbox.current.forEach(item => {
-            item.checked = false
-        })
+            item.checked = false;
+        });
 
-        const lengthCheckbox = refCheckbox.current.length - 1
+        const lengthCheckbox = refCheckbox.current.length - 1;
         if (refCheckbox.current[lengthCheckbox]) {
-            refCheckbox.current[lengthCheckbox].checked = true
-            setDataInput(prev => ({...prev, option: refCheckbox.current[lengthCheckbox].value}))
+            refCheckbox.current[lengthCheckbox].checked = true;
+            setDataInput(prev => ({...prev, option: refCheckbox.current[lengthCheckbox].value}));
         }
-    }, [refCheckbox.current[0], i18n['language']])
+    }, [refCheckbox.current[0], i18n['language']]);
 
     const sendEmail = async (token) => {
         setIsLoading(true);
@@ -115,23 +115,27 @@ const ContactUsChild = () => {
         }
     };
 
-    const clickHandler = (e) => {
-        e.preventDefault()
-        executeRecaptcha('submit_action').then((token) => {
-            // Send token to your backend
-            sendEmail(token);
-        });
-    }
+    const clickHandler = async (e) => {
+        e.preventDefault();
+        if (!executeRecaptcha) {
+            Swal.fire({
+                icon: "warning",
+                text: "reCAPTCHA is still initializing or blocked by an extension. Please wait a moment or disable AdBlock and try again.",
+            });
+            return;
+        }
 
-    // useEffect(() => {
-    //     if (executeRecaptcha) {
-    //         // Trigger reCAPTCHA when needed
-    //         executeRecaptcha('submit_action').then((token) => {
-    //             // Send token to your backend
-    //             sendEmail(token);
-    //         });
-    //     }
-    // }, [executeRecaptcha]);
+        try {
+            const token = await executeRecaptcha('submit_action');
+            await sendEmail(token);
+        } catch (err) {
+            console.error("reCAPTCHA execution error:", err);
+            Swal.fire({
+                icon: "error",
+                text: "Failed to verify reCAPTCHA. Please refresh and try again.",
+            });
+        }
+    };
 
     return isLanguage && (
         <Page>
@@ -222,7 +226,7 @@ const ContactUs = () => {
         <GoogleReCaptchaProvider reCaptchaKey="6LeVn74qAAAAADvSzKTxqJ5p-HjE7gZVYwCsf0Jp">
             <ContactUsChild />
         </GoogleReCaptchaProvider>
-    )
-}
+    );
+};
 
 export default ContactUs;

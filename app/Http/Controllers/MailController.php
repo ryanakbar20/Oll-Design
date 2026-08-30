@@ -56,10 +56,10 @@ class MailController extends Controller
         Mail::to($recipientEmail, $recipientName)
             ->send(new ReplyToSender($email, $name, $question));
 
-        $recipientEmail = "pr_book@olldesign.jp";
-        $recipientName = "Oll-Design";
+        $adminEmail = env('MAIL_ADMIN_ADDRESS', 'admin@olldesign.jp');
+        $adminName = env('MAIL_ADMIN_NAME', 'Oll-Design');
 
-        Mail::to($recipientEmail, $recipientName)
+        Mail::to($adminEmail, $adminName)
             ->send(new SendToCompany($company, $name, $phone, $email, $option, $question));
 
         return response()->json(['message' => 'Email sent successfully.'], 200);
